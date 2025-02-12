@@ -1,5 +1,3 @@
-using Exiled.API.Enums;
-using Exiled.API.Features;
 using System;
 using HarmonyLib;
 using System.IO;
@@ -9,6 +7,9 @@ using UncomplicatedCustomItems.HarmonyElements.Patches;
 using Handler = UncomplicatedCustomItems.Events.EventHandler;
 using UnityEngine;
 using System.Threading.Tasks;
+using LabApi;
+using LabApi.Events.Handlers;
+using PluginAPI.Enums;
 
 namespace UncomplicatedCustomItems
 {
@@ -27,7 +28,7 @@ namespace UncomplicatedCustomItems
 
         internal Handler Handler;
 
-        public override PluginPriority Priority => PluginPriority.First;
+        public override LoadPriority Priority => LoadPriority.High;
 
         public static Plugin Instance { get; private set; }
 
@@ -52,17 +53,17 @@ namespace UncomplicatedCustomItems
 
             if (IsPrerelease)
             {
-                Exiled.Events.Handlers.Server.WaitingForPlayers += Handler.OnWaitingForPlayers;
+                ServerEvents.WaitingForPlayers += Handler.OnWaitingForPlayers;
             }
 
-            Exiled.Events.Handlers.Player.Hurt += Handler.OnHurt;
-            Exiled.Events.Handlers.Player.TriggeringTesla += Handler.OnTriggeringTesla;
-            Exiled.Events.Handlers.Player.Shooting += Handler.OnShooting;
-            Exiled.Events.Handlers.Player.UsedItem += Handler.OnItemUse;
-            Exiled.Events.Handlers.Item.ChangingAttachments += Handler.OnChangingAttachments;
-            Exiled.Events.Handlers.Player.ActivatingWorkstation += Handler.OnWorkstationActivation;
-            Exiled.Events.Handlers.Player.DroppedItem += Handler.OnDrop;
-            Exiled.Events.Handlers.Map.PickupDestroyed += Handler.OnPickup;
+            PlayerEvents.Hurt += Handler.OnHurt;
+            PlayerEvents.TriggeringTesla += Handler.OnTriggeringTesla;
+            PlayerEvents.Shooting += Handler.OnShooting;
+            PlayerEvents.UsedItem += Handler.OnItemUse;
+            PlayerEvents.ChangingAttachments += Handler.OnChangingAttachments;
+            PlayerEvents.ActivatingWorkstation += Handler.OnWorkstationActivation;
+            PlayerEvents.DroppedItem += Handler.OnDrop;
+            ServerEvents.PickupDestroyed += Handler.OnPickup;
 
             LogManager.History.Clear();
 
