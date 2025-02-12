@@ -9,20 +9,21 @@ using UnityEngine;
 using System.Threading.Tasks;
 using LabApi;
 using LabApi.Events.Handlers;
-using PluginAPI.Enums;
+using LabApi.Features.Wrappers;
+using LabApi.Loader.Features.Plugins;
+using LabApi.Features;
+using LabApi.Loader.Features.Plugins.Enums;
 
 namespace UncomplicatedCustomItems
 {
     public class Plugin : Plugin<Config>
     {
-        public const bool IsPrerelease = false;
+        public const bool IsPrerelease = true;
         public override string Name => "UncomplicatedCustomItems";
-
-        public override string Prefix => "UncomplicatedCustomItems";
 
         public override string Author => "SpGerg, FoxWorn & Mr. Baguetter";
 
-        public override Version RequiredExiledVersion { get; } = new(9, 5, 0);
+        public override Version RequiredApiVersion { get; } = new Version(LabApiProperties.CompiledVersion);
 
         public override Version Version { get; } = new(3, 0, 0);
 
@@ -38,7 +39,7 @@ namespace UncomplicatedCustomItems
 
         internal FileConfig FileConfig;
 
-        public override void OnEnabled()
+        public override void Enable()
         {
             Instance = this;
 
@@ -57,13 +58,13 @@ namespace UncomplicatedCustomItems
             }
 
             PlayerEvents.Hurt += Handler.OnHurt;
-            PlayerEvents.TriggeringTesla += Handler.OnTriggeringTesla;
-            PlayerEvents.Shooting += Handler.OnShooting;
+            //PlayerEvents.TriggeringTesla += Handler.OnTriggeringTesla;
+            PlayerEvents.ShootingWeapon += Handler.OnShooting;
             PlayerEvents.UsedItem += Handler.OnItemUse;
-            PlayerEvents.ChangingAttachments += Handler.OnChangingAttachments;
-            PlayerEvents.ActivatingWorkstation += Handler.OnWorkstationActivation;
+            //PlayerEvents.ChangingAttachments += Handler.OnChangingAttachments;
+            //ServerEvents.ActivatingWorkstation += Handler.OnWorkstationActivation;
             PlayerEvents.DroppedItem += Handler.OnDrop;
-            ServerEvents.PickupDestroyed += Handler.OnPickup;
+            //ServerEvents.PickupDestroyed += Handler.OnPickup;
 
             LogManager.History.Clear();
 
@@ -88,11 +89,9 @@ namespace UncomplicatedCustomItems
             FileConfig.Welcome(Server.Port.ToString());
             FileConfig.LoadAll();
             FileConfig.LoadAll(Server.Port.ToString());
-
-            base.OnEnabled();
         }
 
-        public override void OnDisabled()
+        public override void Disable()
         {
             Events.Internal.Player.Unregister();
             Events.Internal.Server.Unregister();
@@ -101,19 +100,17 @@ namespace UncomplicatedCustomItems
             _harmony.UnpatchAll();
             _harmony = null;
 
-            Exiled.Events.Handlers.Player.Hurt -= Handler.OnHurt;
-            Exiled.Events.Handlers.Player.TriggeringTesla -= Handler.OnTriggeringTesla;
-            Exiled.Events.Handlers.Player.Shooting -= Handler.OnShooting;
-            Exiled.Events.Handlers.Server.WaitingForPlayers -= Handler.OnWaitingForPlayers;
-            Exiled.Events.Handlers.Player.UsedItem -= Handler.OnItemUse;
-            Exiled.Events.Handlers.Item.ChangingAttachments -= Handler.OnChangingAttachments;
-            Exiled.Events.Handlers.Player.ActivatingWorkstation -= Handler.OnWorkstationActivation;
-            Exiled.Events.Handlers.Player.DroppedItem -= Handler.OnDrop;
-            Exiled.Events.Handlers.Map.PickupDestroyed -= Handler.OnPickup;
+            PlayerEvents.Hurt -= Handler.OnHurt;
+            //PlayerEvents.TriggeringTesla -= Handler.OnTriggeringTesla;
+            PlayerEvents.ShootingWeapon -= Handler.OnShooting;
+            ServerEvents.WaitingForPlayers -= Handler.OnWaitingForPlayers;
+            PlayerEvents.UsedItem -= Handler.OnItemUse;
+            //PlayerEvents.ChangingAttachments -= Handler.OnChangingAttachments;
+            //PlayerEvents.ActivatingWorkstation -= Handler.OnWorkstationActivation;
+            PlayerEvents.DroppedItem -= Handler.OnDrop;
+            //ServerEvents.PickupDestroyed -= Handler.OnPickup;
 
             Instance = null;
-            base.OnDisabled();
-
         }
     }
 }
