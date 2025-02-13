@@ -1,4 +1,4 @@
-﻿using Exiled.API.Enums;
+﻿using Interactables.Interobjects.DoorUtils;
 
 namespace UncomplicatedCustomItems.Interfaces.SpecificData
 {

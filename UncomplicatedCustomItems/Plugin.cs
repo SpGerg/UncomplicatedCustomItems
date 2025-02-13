@@ -21,6 +21,8 @@ namespace UncomplicatedCustomItems
         public const bool IsPrerelease = true;
         public override string Name => "UncomplicatedCustomItems";
 
+        public override string Description { get; } = "UCI simplifies the creation of customitems.";
+
         public override string Author => "SpGerg, FoxWorn & Mr. Baguetter";
 
         public override Version RequiredApiVersion { get; } = new Version(LabApiProperties.CompiledVersion);

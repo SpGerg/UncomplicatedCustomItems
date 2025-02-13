@@ -1,14 +1,13 @@
-﻿using Exiled.API.Interfaces;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 namespace UncomplicatedCustomItems
 {
-    public class Config : IConfig
+    public class Config
     {
         [Description("Is enabled or not")]
         public bool IsEnabled { get; set; } = true;
 
         [Description("Do enable the developer (debug) mode?")]
-        public bool Debug { get; set; } = false;
+        public bool Debug { get; set; } = true;
 
         [Description("The hint message that will appear every time that you pick up a custom item. %name% is the item's name, %desc% is the item's description")]
         public string PickedUpMessage { get; set; } = "You have picked up a %name% who's a %desc%";

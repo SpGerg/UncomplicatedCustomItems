@@ -1,10 +1,10 @@
 ﻿using CommandSystem;
-using Exiled.Permissions.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UncomplicatedCustomItems.Commands.Admin;
 using UncomplicatedCustomItems.Interfaces;
+using LabApi.Features.Wrappers;
 
 namespace UncomplicatedCustomItems.Commands
 {
@@ -50,7 +50,7 @@ namespace UncomplicatedCustomItems.Commands
                 return false;
             }
 
-            if (cmd.RequiredPermission != string.Empty && !sender.CheckPermission(cmd.RequiredPermission))
+            if (cmd.RequiredPermission != string.Empty && !sender.CheckPermission(PlayerPermissions.SetGroup))
             {
                 response = "You don't have permission to access that command!";
                 return false;

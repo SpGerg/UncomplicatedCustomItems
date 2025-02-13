@@ -3,7 +3,7 @@ using Exiled.Events.EventArgs.Player;
 using UncomplicatedCustomItems.API;
 using UncomplicatedCustomItems.API.Features;
 using UncomplicatedCustomItems.Interfaces.SpecificData;
-using EventSource = Exiled.Events.Handlers.Player;
+using EventSource = LabApi.Events.Handlers.PlayerEvents;
 using UncomplicatedCustomItems.API.Features.CustomModules;
 
 namespace UncomplicatedCustomItems.Events.Internal
@@ -13,12 +13,12 @@ namespace UncomplicatedCustomItems.Events.Internal
         public static void Register()
         {
             EventSource.Hurting += SetDamageFromCustomWeaponOnHurting;
-            EventSource.ItemAdded += ShowItemInfoOnItemAdded;
+            EventSource.PickedUpItem += ShowItemInfoOnItemAdded;
             EventSource.DroppedItem += DroppedItemEvent;
             EventSource.ChangedItem += ChangeItemInHand;
             EventSource.ChangingItem += ChangingItemInHand;
-            EventSource.UsingItemCompleted += OnItemUsingCompleted;
-            EventSource.TogglingNoClip += NoclipButton;
+            EventSource.UsedItem += OnItemUsingCompleted;
+            EventSource.TogglingNoclip += NoclipButton;
             EventSource.Dying += DeathEvent;
             EventSource.ChangingRole += RoleChangeEvent;
         }
@@ -26,11 +26,11 @@ namespace UncomplicatedCustomItems.Events.Internal
         public static void Unregister()
         {
             EventSource.Hurting -= SetDamageFromCustomWeaponOnHurting;
-            EventSource.ItemAdded -= ShowItemInfoOnItemAdded;
+            EventSource.PickedUpItem -= ShowItemInfoOnItemAdded;
             EventSource.DroppedItem -= DroppedItemEvent;
             EventSource.ChangedItem -= ChangeItemInHand;
             EventSource.ChangingItem -= ChangingItemInHand;
-            EventSource.UsingItemCompleted -= OnItemUsingCompleted;
+            EventSource.UsedItem -= OnItemUsingCompleted;
             EventSource.Dying -= DeathEvent;
             EventSource.ChangingRole -= RoleChangeEvent;
         }

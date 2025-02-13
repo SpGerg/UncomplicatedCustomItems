@@ -1,8 +1,15 @@
-﻿using Exiled.API.Enums;
+﻿using LabApi.Loader.Features.Plugins.Enums;
 using System.Collections.Generic;
 using System.ComponentModel;
 using UncomplicatedCustomItems.Interfaces;
 using UnityEngine;
+using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Features.Wrappers;
+using LabApi;
+using LabApi.Events.Handlers;
+using LabApi.Loader.Features.Plugins;
+using MapGeneration;
+using PluginAPI.Core.Zones;
 
 namespace UncomplicatedCustomItems.API.Features
 {
@@ -27,16 +34,16 @@ namespace UncomplicatedCustomItems.API.Features
         /// The <see cref="RoomType">Rooms</see> where the item is allowed to spawn.
         /// If this is empty then the <see cref="Zone"/> parameter will be used instead.
         /// </summary>
-        public List<RoomType> Rooms { get; set; } = new();
+        public List<FacilityRoom> Rooms { get; set; } = new();
 
         /// <summary>
         /// The <see cref="ZoneType">Zones</see> where the item is allowed to spawn.
         /// If <see cref="Rooms"/> is empty then this parameter will be used.
         /// </summary>
-        public List<ZoneType> Zones { get; set; } = new()
+        public List<MapGeneration.FacilityZone> Zones { get; set; } = new()
         {
-            ZoneType.HeavyContainment,
-            ZoneType.Entrance
+            MapGeneration.FacilityZone.HeavyContainment,
+            MapGeneration.FacilityZone.Entrance
         };
 
         /// <summary>

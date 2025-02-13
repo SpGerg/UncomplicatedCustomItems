@@ -1,12 +1,6 @@
 ﻿
 using UncomplicatedCustomItems.Interfaces.SpecificData;
-using Exiled.API.Enums;
-using System.Collections.Generic;
 using InventorySystem.Items.Firearms.Attachments;
-using YamlDotNet.Serialization;
-using CameraShaking;
-using System;
-using System.Linq;
 
 namespace UncomplicatedCustomItems.API.Features.SpecificData
 {

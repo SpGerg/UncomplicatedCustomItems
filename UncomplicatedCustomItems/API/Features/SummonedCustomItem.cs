@@ -1,18 +1,11 @@
-﻿using Exiled.API.Features;
-using Exiled.API.Features.Items;
-using Exiled.API.Features.Items.FirearmModules.Primary;
-using Exiled.API.Features.Pickups;
-using Exiled.Events.EventArgs.Player;
-using MEC;
+﻿using MEC;
 using System.Collections.Generic;
 using System.Linq;
 using UncomplicatedCustomItems.Interfaces;
 using UncomplicatedCustomItems.Interfaces.SpecificData;
 using UnityEngine;
-using Exiled.API.Enums;
 using UncomplicatedCustomItems.API.Struct;
 using UncomplicatedCustomItems.Events;
-using Exiled.API.Features.Roles;
 using UncomplicatedCustomItems.API.Features.Helper;
 using System;
 using UncomplicatedCustomItems.API.Features.CustomModules;
@@ -21,6 +14,27 @@ using InventorySystem.Items.Firearms.Attachments;
 using System.Net.Mail;
 using UncomplicatedCustomItems.API.Features.SpecificData;
 using HarmonyLib;
+using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Features.Wrappers;
+using LabApi;
+using LabApi.Events.Handlers;
+using LabApi.Loader.Features.Plugins;
+using LabApi.Features;
+using LabApi.Loader.Features.Plugins.Enums;
+using InventorySystem;
+using InventorySystem.Items;
+using InventorySystem.Items.Autosync;
+using InventorySystem.Items.Firearms;
+using InventorySystem.Items.Firearms.Attachments.Components;
+using InventorySystem.Items.Firearms.BasicMessages;
+using InventorySystem.Items.Firearms.Modules;
+using InventorySystem.Items.Pickups;
+using InventorySystem.Items.Usables;
+using Interactables.Interobjects.DoorUtils;
+using InventorySystem.Items.Armor;
+using PluginAPI.Roles;
+using static InventorySystem.Items.Firearms.Extensions.WorldmodelMagazineExtension;
+
 
 namespace UncomplicatedCustomItems.API.Features
 {
@@ -47,7 +61,7 @@ namespace UncomplicatedCustomItems.API.Features
         public Player Owner { get; internal set; }
 
         /// <summary>
-        /// The <see cref="SummonedCustomItem"/> as an <see cref="Exiled.API.Features.Items.Item"/>
+        /// The <see cref="SummonedCustomItem"/> as an <see cref="LabApi.Features.Wrappers.Item"/>
         /// </summary>
         public Item Item { get; internal set; }
 
@@ -128,6 +142,7 @@ namespace UncomplicatedCustomItems.API.Features
         /// <param name="rotation"></param>
         /// <returns></returns>
         public SummonedCustomItem(ICustomItem customItem, Player player, Item item) : this(customItem, player, item, null) { }
+        public KeycardPermissions Permissions { get; set; }
 
         /// <summary>
         /// Apply the custom properties of the current <see cref="ICustomItem"/>
@@ -138,14 +153,14 @@ namespace UncomplicatedCustomItems.API.Features
                 switch (CustomItem.CustomItemType)
                 {
                     case CustomItemType.Keycard:
-                        Keycard Keycard = Item as Keycard;
+                        SummonedCustomItem Keycard = (SummonedCustomItem)(Item as IKeycardData);
                         IKeycardData KeycardData = CustomItem.CustomData as IKeycardData;
 
                         Keycard.Permissions = KeycardData.Permissions;
                         break;
 
                     case CustomItemType.Armor:
-                        Armor Armor = Item as Armor;
+                        SummonedCustomItem Armor = (SummonedCustomItem)(Item as IArmorData);
                         IArmorData ArmorData = CustomItem.CustomData as IArmorData;
 
                         Armor.HelmetEfficacy = ArmorData.HeadProtection;
@@ -156,7 +171,7 @@ namespace UncomplicatedCustomItems.API.Features
                         break;
 
                     case CustomItemType.Weapon:
-                        Firearm Firearm = Item as Firearm;
+                        SummonedCustomItem Firearm = (SummonedCustomItem)(Item as IWeaponData);
                         IWeaponData WeaponData = CustomItem.CustomData as IWeaponData;
 
                         Firearm.MagazineAmmo = WeaponData.MaxAmmo;
@@ -170,7 +185,7 @@ namespace UncomplicatedCustomItems.API.Features
                         break;
 
                     case CustomItemType.Jailbird:
-                        Jailbird Jailbird = Item as Jailbird;
+                        SummonedCustomItem Jailbird = (SummonedCustomItem)(Item as IJailbirdData);
                         IJailbirdData JailbirdData = CustomItem.CustomData as IJailbirdData;
 
                         Jailbird.TotalDamageDealt = JailbirdData.TotalDamageDealt;
@@ -182,7 +197,7 @@ namespace UncomplicatedCustomItems.API.Features
                         break;
 
                     case CustomItemType.ExplosiveGrenade:
-                        ExplosiveGrenade ExplosiveGrenade = Item as ExplosiveGrenade;
+                        SummonedCustomItem ExplosiveGrenade = (SummonedCustomItem)(Item as IExplosiveGrenadeData);
                         IExplosiveGrenadeData ExplosiveGrenadeData = CustomItem.CustomData as IExplosiveGrenadeData;
 
                         ExplosiveGrenade.MaxRadius = ExplosiveGrenadeData.MaxRadius;
@@ -196,7 +211,7 @@ namespace UncomplicatedCustomItems.API.Features
                         break;
 
                     case CustomItemType.FlashGrenade:
-                        FlashGrenade FlashGrenade = Item as FlashGrenade;
+                        SummonedCustomItem FlashGrenade = (SummonedCustomItem)(Item as IFlashGrenadeData);
                         IFlashGrenadeData FlashGrenadeData = CustomItem.CustomData as IFlashGrenadeData;
 
                         FlashGrenade.PinPullTime = FlashGrenadeData.PinPullTime;
@@ -212,7 +227,7 @@ namespace UncomplicatedCustomItems.API.Features
                 }
             else if (Pickup is not null)
             {
-                Pickup.Scale = CustomItem.Scale;
+                Pickup.GameObject.transform.localScale = CustomItem.Scale;
                 Pickup.Weight = CustomItem.Weight;
             }
         }
@@ -316,7 +331,7 @@ namespace UncomplicatedCustomItems.API.Features
             }
             else if (Pickup is not null)
             {
-                CustomItem.Scale = Pickup.Scale;
+                CustomItem.Scale = Pickup.GameObject.transform.localScale;
                 CustomItem.Weight = Pickup.Weight;
             }
         }
@@ -425,7 +440,7 @@ namespace UncomplicatedCustomItems.API.Features
             }
             else if (Pickup is not null)
             {
-                Pickup.Scale = CustomItem.Scale;
+                Pickup.GameObject.transform.localScale = CustomItem.Scale;
                 Pickup.Weight = CustomItem.Weight;
             }
         }
@@ -461,11 +476,11 @@ namespace UncomplicatedCustomItems.API.Features
             Triplet<string, string, bool>? Badge = null;
             if (Item.BadgeName is not null && Item.BadgeName.Length > 1 && Item.BadgeColor is not null && Item.BadgeColor.Length > 2)
             {
-                Badge = new(Player.RankName ?? "", Player.RankColor ?? "", Player.ReferenceHub.serverRoles.HasBadgeHidden);
-                LogManager.Debug($"Badge detected, putting {Item.BadgeName}@{Item.BadgeColor} to player {Player.Id}");
+                Badge = new(Player.GroupName ?? "", Player.GroupColor ?? "", Player.ReferenceHub.serverRoles.HasBadgeHidden);
+                LogManager.Debug($"Badge detected, putting {Item.BadgeName}@{Item.BadgeColor} to player {Player.NetworkId}");
 
-                Player.RankName = Item.BadgeName.Replace("@hidden", "");
-                Player.RankColor = Item.BadgeColor;
+                Player.GroupName = Item.BadgeName.Replace("@hidden", "");
+                Player.GroupColor = Item.BadgeColor;
 
                 if (Item.BadgeName.Contains("@hidden"))
                     if (Player.ReferenceHub.serverRoles.TryHideTag())
@@ -479,7 +494,7 @@ namespace UncomplicatedCustomItems.API.Features
             LogManager.Debug("Badge successfully reset");
         }
         
-        internal void OnPickup(ItemAddedEventArgs pickedUp)
+        internal void OnPickup(PlayerPickedUpItemEventArgs pickedUp)
         {
             Pickup = null;
             Item = pickedUp.Item;
@@ -489,7 +504,7 @@ namespace UncomplicatedCustomItems.API.Features
             HandleEvent(pickedUp.Player, ItemEvents.Pickup);
         }
 
-        internal void OnDrop(DroppedItemEventArgs dropped)
+        internal void OnDrop(PlayerDroppedItemEventArgs dropped)
         {
             Pickup = dropped.Pickup;
             Item = null;
@@ -603,12 +618,12 @@ namespace UncomplicatedCustomItems.API.Features
             if (CustomItem.CustomItemType == CustomItemType.Item && ((IItemData)CustomItem.CustomData).Event == itemEvent)
             {
                 IItemData Data = CustomItem.CustomData as IItemData;
-                Log.Debug($"Firing events for item {CustomItem.Name}");
+                LogManager.Debug($"Firing events for item {CustomItem.Name}");
                 if (Data.Command is not null && Data.Command.Length > 2)
                     if (!Data.Command.Contains("P:"))
-                        Server.ExecuteCommand(Data.Command.Replace("%id%", player.Id.ToString()));
+                        Server.RunCommand(Data.Command.Replace("%id%", player.NetworkId.ToString()));
                     else
-                        Server.ExecuteCommand(Data.Command.Replace("%id%", player.Id.ToString()).Replace("P:", ""), player.Sender);
+                        Server.RunCommand(Data.Command.Replace("%id%", player.NetworkId.ToString()).Replace("P:", ""));
 
                 Utilities.ParseResponse(player, Data);
 
@@ -622,16 +637,15 @@ namespace UncomplicatedCustomItems.API.Features
         internal void HandleSelectedDisplayHint()
         {
             if (Plugin.Instance.Config.SelectedMessage.Length > 1)
-                Owner.ShowHint(Plugin.Instance.Config.SelectedMessage.Replace("%name%", CustomItem.Name).Replace("%desc%", CustomItem.Description).Replace("%description%", CustomItem.Description), Plugin.Instance.Config.SelectedMessageDuration);
+                Owner.SendHint(Plugin.Instance.Config.SelectedMessage.Replace("%name%", CustomItem.Name).Replace("%desc%", CustomItem.Description).Replace("%description%", CustomItem.Description), Plugin.Instance.Config.SelectedMessageDuration);
         }
 
         internal void HandlePickedUpDisplayHint()
         {
             if (Plugin.Instance.Config.PickedUpMessage.Length > 1)
-                Owner.ShowHint(Plugin.Instance.Config.PickedUpMessage.Replace("%name%", CustomItem.Name).Replace("%desc%", CustomItem.Description).Replace("%description%", CustomItem.Description), Plugin.Instance.Config.PickedUpMessageDuration);
+                Owner.SendHint(Plugin.Instance.Config.PickedUpMessage.Replace("%name%", CustomItem.Name).Replace("%desc%", CustomItem.Description).Replace("%description%", CustomItem.Description), Plugin.Instance.Config.PickedUpMessageDuration);
         }
-
-        internal bool HandleCustomAction(InventorySystem.Items.Usables.Consumable item)
+        internal bool HandleCustomAction(Consumable item)
         {
             if (Owner is null) 
                 return false;
@@ -642,7 +656,7 @@ namespace UncomplicatedCustomItems.API.Features
                 {
                     case CustomItemType.Medikit:
                         IMedikitData MedikitData = CustomItem.CustomData as IMedikitData;
-                        Owner.Heal(MedikitData.Health, MedikitData.MoreThanMax);
+                        Owner.Heal(MedikitData.Health);
                         break;
                     case CustomItemType.Painkillers:
                         Timing.RunCoroutine(Utilities.PainkillersCoroutine(Owner, CustomItem.CustomData as IPainkillersData));
@@ -654,7 +668,7 @@ namespace UncomplicatedCustomItems.API.Features
                 // Runs also the event as it gets suppressed
                 HandleEvent(Owner, ItemEvents.Use);
                 if (!CustomItem.Reusable)
-                    Item.Get(item).Destroy();
+                    Item.Get(item).RemoveItem();
 
                 return true;
             }
@@ -667,8 +681,6 @@ namespace UncomplicatedCustomItems.API.Features
             List.Remove(this);
             if (IsPickup)
                 Pickup.Destroy();
-            else
-                Item.Destroy();
 
             Pickup = null;
             Item = null;
@@ -689,7 +701,7 @@ namespace UncomplicatedCustomItems.API.Features
         /// </summary>
         /// <param name="owner"></param>
         /// <returns></returns>
-        public static List<SummonedCustomItem> Get(Player owner) => List.Where(sci => sci.Owner?.Id == owner.Id).ToList();
+        public static List<SummonedCustomItem> Get(Player owner) => List.Where(sci => sci.Owner?.NetworkId == owner.NetworkId).ToList();
 
         /// <summary>
         /// Gets a <see cref="SummonedCustomItem"/> by it's owner and it's serial.<br></br>
@@ -698,7 +710,7 @@ namespace UncomplicatedCustomItems.API.Features
         /// <param name="owner"></param>
         /// <param name="serial"></param>
         /// <returns></returns>
-        public static SummonedCustomItem Get(Player owner, ushort serial) => List.Where(sci => sci.Owner is not null && sci.Owner.Id ==  owner.Id && sci.Serial == serial).FirstOrDefault();
+        public static SummonedCustomItem Get(Player owner, ushort serial) => List.Where(sci => sci.Owner is not null && sci.Owner.NetworkId ==  owner.NetworkId && sci.Serial == serial).FirstOrDefault();
 
         /// <summary>
         /// Gets a <see cref="SummonedCustomItem"/> by it's serial.

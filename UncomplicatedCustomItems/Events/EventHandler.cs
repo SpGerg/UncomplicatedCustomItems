@@ -3,20 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Exiled.API.Enums;
-using Exiled.API.Features.Items;
-using Exiled.Events.EventArgs.Item;
-using Exiled.Events.EventArgs.Player;
-using Exiled.Loader;
 using UncomplicatedCustomItems.API.Features;
 using UncomplicatedCustomItems.API.Features.CustomModules;
 using UncomplicatedCustomItems.API.Features.Helper;
 using UncomplicatedCustomItems.Extensions;
 using UnityEngine;
-using Exiled.API.Features.Pickups;
-using Exiled.Events.EventArgs.Map;
 using Light = Exiled.API.Features.Toys.Light;
 using UncomplicatedCustomItems.Interfaces;
+using LabApi.Events.Arguments.PlayerEvents;
+using LabApi.Features.Wrappers;
 
 
 namespace UncomplicatedCustomItems.Events
@@ -30,57 +25,57 @@ namespace UncomplicatedCustomItems.Events
         public static Assembly EventHandlerAssembly => Loader.Plugins.Where(plugin => plugin.Name is "Exiled.Events").FirstOrDefault()?.Assembly;
 
         public static Type PlayerHandler => EventHandlerAssembly?.GetTypes().Where(x => x.FullName == "Exiled.Events.Handlers.Player").FirstOrDefault();
-        public void OnHurt(HurtEventArgs ev)
+        public void OnHurt(PlayerHurtingEventArgs ev)
         {
             LogManager.Debug("OnHurt event is being triggered");
-            if (ev.Player is not null && ev.Attacker is not null && ev.Attacker.TryGetSummonedInstance(out SummonedCustomItem summonedCustomItem))
+            if (ev.Target is not null && ev.Player is not null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem summonedCustomItem))
             {
                  LogManager.Debug("Fuck all event is being triggered");
                 summonedCustomItem.LastDamageTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-                if (ev.Attacker.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<LifeSteal>())
+                if (ev.Player.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<LifeSteal>())
                 {
                     LogManager.Debug("LifeSteal custom flag is being triggered");
 
                     if (Amount > 0)
                     {
-                        ev.Attacker.Heal(Amount);
+                        ev.Player.Heal(Amount);
                         LogManager.Debug($"LifeSteal custom flag triggered, healed {Amount} HP");
                     }
                 }
 
-                if (ev.Attacker.TryGetSummonedInstance(out SummonedCustomItem CustomItem) && CustomItem.HasModule<HalfLifeSteal>())
+                if (ev.Player.TryGetSummonedInstance(out SummonedCustomItem CustomItem) && CustomItem.HasModule<HalfLifeSteal>())
                 {
                     LogManager.Debug("HalfLifeSteal custom flag is being triggered");
 
                     if (Amount > 0)
                     {
                         float HealedAmount = Amount * Percentage;
-                        ev.Attacker.Heal(HealedAmount);
+                        ev.Player.Heal(HealedAmount);
                         LogManager.Debug($"HalfLifeSteal custom flag triggered, healed {HealedAmount} HP");
                     }
                 }
             }
         }
-        public void OnTriggeringTesla(TriggeringTeslaEventArgs ev)
-        {
-            if (!ev.IsAllowed)
-                return;
+        // public void OnTriggeringTesla(TriggeringTeslaEventArgs ev)
+        // {
+            // if (!ev.IsAllowed)
+                // return;
 
-            if (ev.Player is not null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<DoNotTriggerTeslaGates>())
-                ev.IsTriggerable = false;
+            // if (ev.Player is not null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<DoNotTriggerTeslaGates>())
+                // ev.IsTriggerable = false;
                 
-        }
-        public void OnShooting(ShootingEventArgs ev)
+        // }
+        public void OnShooting(PlayerShootingWeaponEventArgs ev)
         {
             if (!ev.IsAllowed)
                 return;
 
             if (ev.Player != null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<InfiniteAmmo>())
             {
-                if (ev.Firearm != null)
+                if (ev.Weapon != null)
                 {
-                    if (ev.Firearm is Firearm firearm2)
+                    if (ev.Weapon is Firearm firearm2)
                     {
                         firearm2.MagazineAmmo = firearm2.MaxMagazineAmmo;
                         LogManager.Debug($"InfiniteAmmo flag was triggered: magazine refilled to {firearm2.MagazineAmmo}");
@@ -93,9 +88,9 @@ namespace UncomplicatedCustomItems.Events
             }
             if (ev.Player != null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem CustomItem) && CustomItem.HasModule<DieOnUse>())
             {
-                if (ev.Item != null)
+                if (ev.Weapon != null)
                 {
-                    ev.Player.Kill(DamageType.Custom);
+                    ev.Player.Kill();
                     LogManager.Debug("DieOnUse triggered: player killed.");
                 }
                 else
@@ -104,14 +99,14 @@ namespace UncomplicatedCustomItems.Events
                 }
             }
         }
-        public void OnItemUse(UsedItemEventArgs ev)
+        public void OnItemUse(PlayerUsedItemEventArgs ev)
         {
 
             if (ev.Player != null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<DieOnUse>())
             {
                 if (ev.Item  != null)
                 {
-                    ev.Player.Kill(DamageType.Custom);
+                    ev.Player.Kill();
                     LogManager.Debug("DieOnUse triggered: user killed.");
                 }
                 else
@@ -120,39 +115,39 @@ namespace UncomplicatedCustomItems.Events
                 }
             }
         }
-        public void OnChangingAttachments(ChangingAttachmentsEventArgs ev)
-        {
+        // public void OnChangingAttachments(ChangingAttachmentsEventArgs ev)
+        // {
 
-            if (ev.Player != null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<WorkstationBan>())
-            {
-                if (ev.Player  != null)
-                {
-                    ev.IsAllowed = false;
-                    ev.Player.ShowHint(Plugin.Instance.Config.WorkstationBanHint, Plugin.Instance.Config.WorkstationBanHintDuration);
-                }
-                else
-                {
-                    LogManager.Warn("ERROR: WorkstationBan flag was triggered but couldnt be ran.");
-                }
-            }
-        }
-        public void OnWorkstationActivation(ActivatingWorkstationEventArgs ev)
-        {
+            // if (ev.Player != null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<WorkstationBan>())
+            // {
+                // if (ev.Player  != null)
+                // {
+                    // ev.IsAllowed = false;
+                    // ev.Player.ShowHint(Plugin.Instance.Config.WorkstationBanHint, Plugin.Instance.Config.WorkstationBanHintDuration);
+                // }
+                // else
+                // {
+                    // LogManager.Warn("ERROR: WorkstationBan flag was triggered but couldnt be ran.");
+                // }
+            // }
+        // }
+        // public void OnWorkstationActivation(ActivatingWorkstationEventArgs ev)
+        // {
 
-            if (ev.Player != null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<WorkstationBan>())
-            {
-                if (ev.Player != null)
-                {
-                    ev.IsAllowed = false;
-                    ev.Player.ShowHint(Plugin.Instance.Config.WorkstationBanHint, Plugin.Instance.Config.WorkstationBanHintDuration);
-                }
-                else
-                {
-                    LogManager.Warn("ERROR: WorkstationBan flag was triggered but couldnt be ran.");
-                }
-            }
-        }
-        public void OnDrop(DroppedItemEventArgs ev)
+            // if (ev.Player != null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<WorkstationBan>())
+            // {
+                // if (ev.Player != null)
+                // {
+                    // ev.IsAllowed = false;
+                    // ev.Player.ShowHint(Plugin.Instance.Config.WorkstationBanHint, Plugin.Instance.Config.WorkstationBanHintDuration);
+                // }
+                // else
+                // {
+                    // LogManager.Warn("ERROR: WorkstationBan flag was triggered but couldnt be ran.");
+                // }
+            // }
+        // }
+        public void OnDrop(PlayerDroppedItemEventArgs ev)
         {
 
             if (ev.Pickup != null && ev.Player.TryGetSummonedInstance(out SummonedCustomItem customItem) && customItem.HasModule<ItemGlow>())
@@ -167,20 +162,20 @@ namespace UncomplicatedCustomItems.Events
                 }
             }
         }
-        public void OnPickup(PickupDestroyedEventArgs ev)
-        {
-            if (ev.Pickup != null)
-            {
-                if (ev.Pickup != null)
-                {
-                    DestroyLightOnItem(ev.Pickup);
-                }
-                else
-                {
-                    LogManager.Warn("ERROR: Couldnt destroy light on {Pickup}.");
-                }
-            }
-        }
+        // public void OnPickup(PickupDestroyedEventArgs ev)
+        // {
+            // if (ev.Pickup != null)
+            // {
+                // if (ev.Pickup != null)
+                // {
+                    // DestroyLightOnItem(ev.Pickup);
+                // }
+                // else
+                // {
+                    // LogManager.Warn("ERROR: Couldnt destroy light on {Pickup}.");
+                // }
+            // }
+        // }
         public void DestroyLightOnItem(Pickup pickup)
         {
             LogManager.Debug("DestroyLightOnItem method triggered");

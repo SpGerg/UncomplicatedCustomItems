@@ -1,7 +1,5 @@
-﻿using Exiled.API.Enums;
-using Exiled.API.Extensions;
-using Exiled.API.Features;
-using Exiled.API.Features.Pickups;
+﻿using LabApi.Features.Wrappers;
+using MapGeneration;
 using MEC;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +44,7 @@ namespace UncomplicatedCustomItems.API
                         return false;
                     }
 
-                    if (!item.Item.IsWeapon())
+                    if (item.Item == ItemType.GunCOM15 || item.Item == ItemType.GunE11SR || item.Item == ItemType.GunCrossvec || item.Item == ItemType.GunFSP9 || item.Item == ItemType.GunLogicer || item.Item == ItemType.GunCOM18 || item.Item == ItemType.GunRevolver || item.Item == ItemType.GunAK || item.Item == ItemType.GunShotgun || item.Item == ItemType.GunCom45 || item.Item == ItemType.ParticleDisruptor || item.Item == ItemType.GunFRMG0 || item.Item == ItemType.GunA7)
                     {
                         error = $"The item has been flagged as 'Weapon' but the item {item.Item} is not a weapon in the game!";
                         return false;
@@ -61,7 +59,7 @@ namespace UncomplicatedCustomItems.API
                         return false;
                     }
 
-                    if (!item.Item.IsKeycard())
+                    if (item.Item == ItemType.KeycardJanitor || item.Item == ItemType.KeycardScientist || item.Item == ItemType.KeycardResearchCoordinator || item.Item == ItemType.KeycardZoneManager || item.Item == ItemType.KeycardGuard || item.Item == ItemType.KeycardMTFPrivate || item.Item == ItemType.KeycardContainmentEngineer || item.Item == ItemType.KeycardMTFOperative || item.Item == ItemType.KeycardMTFCaptain || item.Item == ItemType.KeycardFacilityManager || item.Item == ItemType.KeycardChaosInsurgency || item.Item == ItemType.KeycardO5)
                     {
                         error = $"The item has been flagged as 'Keycard' but the item {item.Item} is not a keycard in the game!";
                         return false;
@@ -76,7 +74,8 @@ namespace UncomplicatedCustomItems.API
                         return false;
                     }
 
-                    if (!item.Item.IsArmor())
+                    if (item.Item == ItemType.ArmorLight || item.Item == ItemType.ArmorCombat || item.Item == ItemType.ArmorHeavy)
+
                     {
                         error = $"The item has been flagged as 'Armor' but the item {item.Item} is not a armor in the game!";
                         return false;
@@ -193,12 +192,12 @@ namespace UncomplicatedCustomItems.API
 
             if (response.BroadcastMessage.Length > 1 && response.BroadcastDuration > 0)
             {
-                player.Broadcast(response.BroadcastDuration, response.BroadcastMessage);
+                player.SendBroadcast(response.BroadcastMessage, response.BroadcastDuration);
             }
 
             if (response.HintMessage.Length > 1 && response.HintDuration > 0)
             {
-                player.ShowHint(response.HintMessage, response.HintDuration);
+                player.SendHint(response.HintMessage, response.HintDuration);
             }
         }
 
@@ -263,7 +262,7 @@ namespace UncomplicatedCustomItems.API
 
             else if (Spawn.Rooms.Count() > 0)
             {
-                RoomType Room = Spawn.Rooms.RandomItem();
+                RoomName Room = Spawn.Rooms.RandomItem();
                 if (Spawn.ReplaceExistingPickup)
                 {
                     List<Pickup> FilteredPickups = Pickup.List.Where(pickup => pickup.Room.Type == Room && !IsSummonedCustomItem(pickup.Serial)).ToList();
@@ -277,11 +276,11 @@ namespace UncomplicatedCustomItems.API
                     return;
                 }
                 else
-                    new SummonedCustomItem(CustomItem, Exiled.API.Features.Room.Get(Room).Position);
+                    new SummonedCustomItem(CustomItem, LabApi.Features.Wrappers.Room.Get(Room).Position);
             }
             else if (Spawn.Zones.Count() > 0)
             {
-                ZoneType Zone = Spawn.Zones.RandomItem();
+                FacilityZone Zone = Spawn.Zones.RandomItem();
                 if (Spawn.ReplaceExistingPickup)
                 {
                     List<Pickup> FilteredPickups = Pickup.List.Where(pickup => pickup.Room.Zone == Zone && !IsSummonedCustomItem(pickup.Serial)).ToList();
